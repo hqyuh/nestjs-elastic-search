@@ -1,0 +1,47 @@
+GET /articles/_search
+{
+  "size": 10,
+  "query": {
+    "match_all": {}
+  }
+}
+
+GET _cat/indices?v
+
+GET articles
+
+GET /articles/_doc/hn5yGZMBxORZzaw-3INR
+
+GET /articles/_search
+{
+  "query": {
+    "match": {
+      "id": 1
+    }
+  }
+}
+
+GET /articles/_search
+{
+  "query": {
+    "term": {
+      "title.keyword": "apple"
+    }
+  }
+}
+
+POST /articles/_doc
+{ "id": 2,
+  "title": "samsung",
+  "content": "A samsung"
+}
+
+
+POST /articles/_update/iH5rHpMBxORZzaw-q4Na
+{
+  "doc": {
+    "content": "A samsung update"
+  }
+}
+
+DELETE /articles/_doc/iH5rHpMBxORZzaw-q4Na
