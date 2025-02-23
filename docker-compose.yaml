@@ -41,9 +41,8 @@ services:
     environment:
       discovery.type: 'single-node'
       bootstrap.memory_lock: true
-      xpack.security.enabled: true
-      xpack.security.enrollment.enabled: true
-      xpack.security.autoconfiguration.enabled: true
+      xpack.security.enabled: false
+      xpack.security.enrollment.enabled: false
       ELASTIC_USERNAME: ${ELASTIC_USERNAME}
       ELASTIC_PASSWORD: ${ELASTIC_PASSWORD}
       ES_JAVA_OPTS: '-Xms128m -Xmx512m'
@@ -74,21 +73,9 @@ services:
       - ${KIBANA_PORT}:5601
     restart: always
     environment:
-      # elasticsearch.ssl.verificationMode: 'none'
-      # xpack.security.enabled: false
-      xpack.security.http.ssl.enabled: true
-      # xpack.security.transport.ssl.enabled: true
-      # csp.strict: false
-      # csp.warnLegacyBrowsers: true
-      # xpack.security.enrollment.enabled: true
-      ELASTICSEARCH_HOSTS: http://localhost:9200
-      # ELASTICSEARCH_SERVICEACCOUNTTOKEN: 'AAEAAWVsYXN0aWMvZmxlZXQtc2VydmVyL215LXRva2VuOm9vZ2duSm5vUzRtaWlIbmNBdE8tT1E'
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
       ELASTIC_USERNAME: ${KIBANA_USERNAME}
       ELASTIC_PASSWORD: ${KIBANA_PASSWORD}
-      # ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES: './config/certs/ca/ca.crt'
-      # XPACK_SECURITY_ENCRYPTIONKEY: 'GlMsRqxowLRcx/pTimUno8YliKoszQ0+4TLX9II3I7w='
-      # XPACK_REPORTING_ENCRYPTIONKEY: 'jFSghBN8mzmrikLoCmEFdiVuxein1IYVjIDCdXJHhwg='
-      # XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY: 'gryVRl5jwDcpWMQfi4eSQ2VrydRa7Z5j75zM0js4Pgs='
     depends_on:
       - elasticsearch
     healthcheck:
