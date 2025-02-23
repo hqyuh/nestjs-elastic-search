@@ -1,4 +1,3 @@
-version: '3'
 services:
   postgres:
     restart: always
@@ -13,7 +12,7 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     networks:
-      - postgres
+      - elastic-network
 
   pgadmin:
     restart: always
@@ -29,36 +28,83 @@ services:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
     networks:
-      - postgres
+      - elastic-network
 
   elasticsearch:
-    restart: always
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.25
     container_name: elasticsearch
+    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
+    restart: always
     volumes:
       - elastic-data:/usr/share/elasticsearch/data
+    ports:
+      - ${ES_PORT}:9200
     environment:
       discovery.type: 'single-node'
-      xpack.security.enabled: 'true'
-      ELASTIC_USERNAME: ${ELASTICSEARCH_USERNAME}
-      ELASTIC_PASSWORD: ${ELASTICSEARCH_PASSWORD}
-    network_mode: 'host'
+      bootstrap.memory_lock: true
+      xpack.security.enabled: true
+      xpack.security.enrollment.enabled: true
+      xpack.security.autoconfiguration.enabled: true
+      ELASTIC_USERNAME: ${ELASTIC_USERNAME}
+      ELASTIC_PASSWORD: ${ELASTIC_PASSWORD}
+      ES_JAVA_OPTS: '-Xms128m -Xmx512m'
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'curl -s --fail http://localhost:9200/_cluster/health | grep -q ''"status":"green"'' || curl -s --fail http://localhost:9200/_cluster/health | grep -q ''"status":"yellow"''',
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 120
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    networks:
+      - elastic-network
 
   kibana:
-    restart: always
-    image: docker.elastic.co/kibana/kibana:7.17.25
     container_name: kibana
+    image: docker.elastic.co/kibana/kibana:${STACK_VERSION}
+    labels:
+      co.elastic.logs/module: kibana
+    volumes:
+      - kibanadata:/usr/share/kibana/data
+    ports:
+      - ${KIBANA_PORT}:5601
+    restart: always
     environment:
-      XPACK_SECURITY_ENABLED: 'true'
-      ELASTICSEARCH_HOSTS: ${ELASTICSEARCH_NODE}
-      ELASTICSEARCH_USERNAME: ${ELASTICSEARCH_USERNAME}
-      ELASTICSEARCH_PASSWORD: ${ELASTICSEARCH_PASSWORD}
-    network_mode: 'host'
+      # elasticsearch.ssl.verificationMode: 'none'
+      # xpack.security.enabled: false
+      xpack.security.http.ssl.enabled: true
+      # xpack.security.transport.ssl.enabled: true
+      # csp.strict: false
+      # csp.warnLegacyBrowsers: true
+      # xpack.security.enrollment.enabled: true
+      ELASTICSEARCH_HOSTS: http://localhost:9200
+      # ELASTICSEARCH_SERVICEACCOUNTTOKEN: 'AAEAAWVsYXN0aWMvZmxlZXQtc2VydmVyL215LXRva2VuOm9vZ2duSm5vUzRtaWlIbmNBdE8tT1E'
+      ELASTIC_USERNAME: ${KIBANA_USERNAME}
+      ELASTIC_PASSWORD: ${KIBANA_PASSWORD}
+      # ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES: './config/certs/ca/ca.crt'
+      # XPACK_SECURITY_ENCRYPTIONKEY: 'GlMsRqxowLRcx/pTimUno8YliKoszQ0+4TLX9II3I7w='
+      # XPACK_REPORTING_ENCRYPTIONKEY: 'jFSghBN8mzmrikLoCmEFdiVuxein1IYVjIDCdXJHhwg='
+      # XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY: 'gryVRl5jwDcpWMQfi4eSQ2VrydRa7Z5j75zM0js4Pgs='
+    depends_on:
+      - elasticsearch
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -s --fail http://localhost:5601/api/status']
+      interval: 10s
+      timeout: 10s
+      retries: 120
+    networks:
+      - elastic-network
 
 volumes:
   elastic-data:
     driver: local
+  kibanadata:
+    driver: local
 
 networks:
-  postgres:
+  elastic-network:
     driver: bridge

@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ElasticsearchService } from '@nestjs/elasticsearch';
 import Article from '../entity/article.entity';
-import ArticleCountResult from '../interface/article-count-result.interface';
 import ArticleSearchBody from '../interface/article-search-body.interface';
 import ArticleSearchResult from '../interface/article-search-result.interface';
 
@@ -12,10 +11,7 @@ export default class SearchService {
   constructor(private readonly elasticsearchService: ElasticsearchService) {}
 
   async indexArticle(article: Article) {
-    return this.elasticsearchService.index<
-      ArticleSearchResult,
-      ArticleSearchBody
-    >({
+    return this.elasticsearchService.index<ArticleSearchBody>({
       index: this.index,
       body: {
         id: article.id,
@@ -26,7 +22,7 @@ export default class SearchService {
   }
 
   async count(query: string, fields: string[]) {
-    const { body } = await this.elasticsearchService.count<ArticleCountResult>({
+    const { count } = await this.elasticsearchService.count({
       index: this.index,
       body: {
         query: {
@@ -37,7 +33,7 @@ export default class SearchService {
         },
       },
     });
-    return body.count;
+    return count;
   }
 
   async search(text: string, offset?: number, limit?: number, startId = 0) {
@@ -45,7 +41,7 @@ export default class SearchService {
     if (startId) {
       separateCount = await this.count(text, ['title', 'content']);
     }
-    const { body } =
+    const response =
       await this.elasticsearchService.search<ArticleSearchResult>({
         index: this.index,
         from: offset,
@@ -75,8 +71,8 @@ export default class SearchService {
           },
         },
       });
-    const count = body.hits.total.value;
-    const hits = body.hits.hits;
+    const count = response.hits.total;
+    const hits = response.hits.hits;
     const results = hits.map((item) => item._source);
     return {
       count: startId ? separateCount : count,
@@ -117,7 +113,7 @@ export default class SearchService {
           },
         },
         script: {
-          inline: script,
+          source: script,
         },
       },
     });

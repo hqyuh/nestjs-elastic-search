@@ -1,7 +1,18 @@
 {
-    "cSpell.words": [
-        "nestjs",
-        "PGADMIN",
-        "typeorm"
-    ]
+  "cSpell.words": [
+    "autoconfiguration",
+    "CERTIFICATEAUTHORITIES",
+    "ENCRYPTEDSAVEDOBJECTS",
+    "ENCRYPTIONKEY",
+    "healthcheck",
+    "kibanadata",
+    "memlock",
+    "nestjs",
+    "PGADMIN",
+    "SERVICEACCOUNTTOKEN",
+    "truststore",
+    "typeorm",
+    "ulimits",
+    "xpack"
+  ]
 }

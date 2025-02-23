@@ -45,8 +45,8 @@ import * as Joi from 'joi';
       useFactory: async (configService: ConfigService) => ({
         node: configService.get('ELASTICSEARCH_NODE'),
         auth: {
-          username: configService.get('ELASTICSEARCH_USERNAME'),
-          password: configService.get('ELASTICSEARCH_PASSWORD'),
+          username: configService.get('ELASTIC_USERNAME'),
+          password: configService.get('ELASTIC_PASSWORD'),
         },
       }),
       inject: [ConfigService],

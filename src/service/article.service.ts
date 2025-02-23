@@ -11,8 +11,8 @@ import UpdateArticleDto from '../dto/update-article.dto';
 export default class ArticleService {
   constructor(
     @InjectRepository(Article)
-    private postsRepository: Repository<Article>,
-    private searchService: SearchService,
+    private readonly postsRepository: Repository<Article>,
+    private readonly searchService: SearchService,
   ) {}
 
   async getPosts(
@@ -63,6 +63,10 @@ export default class ArticleService {
     const newPost = this.postsRepository.create(body);
     await this.postsRepository.save(newPost);
     this.searchService.indexArticle(newPost);
+    console.log(
+      '🚀 ArticleService',
+      await this.searchService.indexArticle(newPost),
+    );
     return newPost;
   }
 
@@ -100,6 +104,7 @@ export default class ArticleService {
       limit,
       startId,
     );
+
     const ids = results.map((result) => result.id);
     if (!ids.length) {
       return {
