@@ -32,31 +32,52 @@ services:
       - postgres
 
   elasticsearch:
-    restart: always
     image: docker.elastic.co/elasticsearch/elasticsearch:7.17.25
     container_name: elasticsearch
-    volumes:
-      - elastic-data:/usr/share/elasticsearch/data
     environment:
-      discovery.type: 'single-node'
-      xpack.security.enabled: 'true'
-      ELASTIC_USERNAME: ${ELASTICSEARCH_USERNAME}
-      ELASTIC_PASSWORD: ${ELASTICSEARCH_PASSWORD}
-    network_mode: 'host'
+      - node.name=elasticsearch
+      - http.port=9200
+      - http.host=0.0.0.0
+      - transport.host=127.0.0.1
+      - cluster.name=es-cluster
+      - discovery.seed_hosts=elasticsearch
+      - cluster.initial_master_nodes=elasticsearch
+      - bootstrap.memory_lock=true
+      - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
+      - ELASTICSEARCH_USERNAME=${ELASTICSEARCH_USERNAME}
+      - ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD}
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - es_data:/var/lib/elasticsearch
+    ports:
+      - '9200:9200'
+    networks:
+      - postgres
 
   kibana:
     restart: always
     image: docker.elastic.co/kibana/kibana:7.17.25
     container_name: kibana
     environment:
-      XPACK_SECURITY_ENABLED: 'true'
       ELASTICSEARCH_HOSTS: ${ELASTICSEARCH_NODE}
       ELASTICSEARCH_USERNAME: ${ELASTICSEARCH_USERNAME}
       ELASTICSEARCH_PASSWORD: ${ELASTICSEARCH_PASSWORD}
-    network_mode: 'host'
+    ports:
+      - 5601:5601
+    depends_on:
+      - elasticsearch
+    links:
+      - elasticsearch
+    networks:
+      - postgres
 
 volumes:
   elastic-data:
+    driver: local
+  es_data:
     driver: local
 
 networks:
