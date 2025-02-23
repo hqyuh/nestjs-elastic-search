@@ -43,7 +43,7 @@ import * as Joi from 'joi';
     ElasticsearchModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        node: configService.get('ELASTICSEARCH_NODE'),
+        node: 'http://localhost:9200',
         auth: {
           username: configService.get('ELASTIC_USERNAME'),
           password: configService.get('ELASTIC_PASSWORD'),
