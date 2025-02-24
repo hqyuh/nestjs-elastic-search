@@ -63,10 +63,6 @@ export default class ArticleService {
     const newPost = this.postsRepository.create(body);
     await this.postsRepository.save(newPost);
     this.searchService.indexArticle(newPost);
-    console.log(
-      '🚀 ArticleService',
-      await this.searchService.indexArticle(newPost),
-    );
     return newPost;
   }
 
